@@ -1,5 +1,6 @@
 # Generate test text file for pset2
 import random
+import json
 
 # Allow us to temporarily generate empty narrative
 # and dialogue strings. Normally set to 1.
@@ -57,7 +58,7 @@ def gen_dialog():
 def gen_narrative():
     ''' Return a string representing some narrative. '''
     return gen_text(['nar ', 'ra ', 'tive '],
-                    (MIN_WORDS,4),
+                    (MIN_WORDS, 4),
                     '.')
 
 def gen_line(mode_f, num_quotes):
@@ -104,13 +105,26 @@ def gen_paragraph(mode_f, quotes_per_line):
     return (text.strip(), mode_f)
 
 def main():
-    # Test paragraph string generator
-    qpl = [0, 1, 2]
+    # Open and read a JSON file with the pattern that we would
+    # like to generate. The file should be a list of lists, where
+    # each sublist describes the quote per line.
+    #
+    # For example, [[0, 1, 3], [3, 0, 1]] defines two paragraphs
+    # of text. The first paragraph has no double quotes on its
+    # first line, one on its second, and three on its third.
+    with open("qpl.json", "r", encoding="utf-8") as f:
+        pattern = json.load(f)
+
+    # A document always starts with a piece of narrative.
     mode_f = gen_narrative
-    print(mode_str(mode_f))
-    text, mode_f = gen_paragraph(mode_f, qpl)
-    print(text)
-    print(mode_str(mode_f))
+
+    for qpl in pattern:
+        # For now, every paragraph should start and end with narrative.
+        assert (sum(qpl) & 1) == 0, "Assumption failed"
+
+        text, mode_f = gen_paragraph(mode_f, qpl)
+        print(text)
+        print()      # leave a blank line between paragraphs
 
 if __name__ == '__main__':
     main()
